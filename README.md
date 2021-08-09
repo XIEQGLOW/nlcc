@@ -1,5 +1,6 @@
- `nlcc` NIST Lightweight Competition CLI
-=========================================
+ `nlcc` 
+========
+NIST Lightweight Competition CLI.  
 Compile any of the NIST lightweight crypto competition entries into a usable
 CLI tool.
 
