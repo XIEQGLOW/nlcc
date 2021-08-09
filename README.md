@@ -1,25 +1,24 @@
- nlcc
-======
-use any of the NIST lightweight crypto algorithm entries as a CLI tool
+ `nlcc` NIST Lightweight Competition CLI
+=========================================
+Compile any of the NIST lightweight crypto competition entries into a usable
+CLI tool.
 
- warning
----------
-! this tool can be accurately described as a 'toy'
-! it is not designed to be secure
-! do not use this for securing any sensitive information
+!             this tool is a 'toy'              !
+!        it is not designed to be secure        !
+! do not use this for any sensitive information !
 
- deps
+ deps 
 ------
 * libsodium
 * api.h, encrypt.c from an algorithm's source
 
- building
+ building 
 ----------
 * copy api.h, and encrypt.c from your chosen algorithm's source to the repo
-  root
+   root
 * run `make`
 
- usage
+ usage 
 -------
 nlcc [-h] [-k key_file] [-n nonce_file] [-a ad] [-m message|-d ciphertext]
 where:
@@ -28,12 +27,12 @@ where:
     -n nonce_file    file to read nonce from
     -a ad            string of associated data
     -m message       message to encrypt
-    -d ciphertext    ciphertext hex digest to decrypt
+    -d ciphertext    ciphertext (hex encoded) to decrypt
 
 * outputs are hex encoded and are tailed with the output size (in bits)
 * plaintext contains a decoded representation in quotations
 
- examples
+ examples 
 ----------
 encryption:
 
@@ -44,7 +43,7 @@ encryption:
     PT    = 74657374696e67206d657373616765 ("testing message") (120)
     CT    = 87e649bf2c3e6c83cbb1ee7120c419a1f58b03b0386258
 
-decryption of above ciphertext digest (same key, same ad):
+decryption of above ciphertext (same key, same ad):
 
     $ ./nlcc -k ./file -a "adadadadad" -d "87e649bf2c3e6c83cbb1ee7120c419a1f58b03b0386258"
     Key   = ffffffffffffffffffffffffffffffff (128)
@@ -55,7 +54,7 @@ decryption of above ciphertext digest (same key, same ad):
 
  todo
 ------
-• encrypt/decrypt from stdin/stdout
-• load associated data from file
-• better command-line flags
-• script to download and compile every competition entry into a CLI tool
+* encrypt/decrypt from stdin/stdout
+* load associated data from file
+* better command-line flags
+* script to download and compile every competition entry into a CLI tool
