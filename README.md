@@ -13,13 +13,13 @@ CLI tool.
  Dependencies 
 --------------
 * libsodium
-* api.h, encrypt.c from an algorithm's source
+* api.h, encrypt.c from a competition entry's source
 
  Building 
 ----------
-* copy api.h, and encrypt.c from your chosen algorithm's source to the repo
+1. Copy api.h, and encrypt.c from your chosen algorithm's source to the repo
    root
-* run `make`
+2. Run `make`
 
  Usage 
 -------
@@ -34,8 +34,10 @@ where:
     -d ciphertext    ciphertext (hex encoded) to decrypt
 ```
 
-* outputs are hex encoded and are tailed with the output size (in bits)
-* plaintext contains a decoded representation in quotations
+Note:
+
+* Outputs are hex encoded and are tailed with the output size (in bits)
+* Plaintext contains a decoded representation in quotations
 
  Examples 
 ----------
