@@ -1,6 +1,6 @@
 CC = cc
 BIN = nlcc
-LDFLAGS = encrypt.c -lsodium
+LDFLAGS = encrypt.c -lsodium -g
 
 all: $(BIN)
 $(BIN): nlcc.c encrypt.c crypto_aead.h
