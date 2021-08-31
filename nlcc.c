@@ -24,12 +24,13 @@ unsigned char *msgs[MAX_MSG_ARRAY_LEN]; // array of messages
 unsigned long long msgls[MAX_MSG_ARRAY_LEN];
 unsigned long long nmsgs; // number of messages
 
+unsigned char *cts[MAX_MSG_ARRAY_LEN];
+unsigned long long ctls[MAX_MSG_ARRAY_LEN];
+unsigned long long ncts; // number of ciphertexts
+
 unsigned char key[CRYPTO_KEYBYTES];
 unsigned char nonce[CRYPTO_NPUBBYTES];
 unsigned char ad[MAX_AD_LEN];           // TODO make same as key?
-
-
-//unsigned char ct[MAX_MSG_LEN + CRYPTO_ABYTES];
 
 unsigned long long adlen, clen; // sizes
 size_t clenz;
@@ -40,7 +41,8 @@ char nonce_hex[(CRYPTO_NPUBBYTES*2)+1];
 char ad_hex[(MAX_AD_LEN*2)+1];
 //char ct_hex[((MAX_MSG_LEN + CRYPTO_ABYTES)*2)+1];
 
-int verbose;
+// verbose flag
+static int verbose;
 
 int init(void);
 void usage(void);
@@ -82,10 +84,9 @@ int main(int argc, char *argv[])
 	}
 
 	verbose = 0;
-	char *msgfile;
 	char c;
 	int ret, opt;
-	char *noncefile = NULL, *adfile = NULL, *keyfile = NULL, *ptfile = NULL;
+	char *noncefile = NULL, *adfile = NULL, *keyfile = NULL, *msgfile = NULL, *ctfile = NULL;
 
 	while((opt = getopt(argc, argv, "hvk:n:d:a:m:")) != -1) {
 		switch(opt) {
@@ -113,10 +114,10 @@ int main(int argc, char *argv[])
 
 				break;
 			case 'd':
-				ptfile = optarg;
+				ctfile = optarg;
 				// TODO move this
 				//ret = sodium_hex2bin(ct, MAX_MSG_LEN + CRYPTO_ABYTES, optarg, strlen(optarg), NULL, &clenz, NULL);
-				clen = (unsigned long long)clenz;
+				//clen = (unsigned long long)clenz;
 				break;
 			case ':':
 				fprintf(stderr, "option needs value.\n");
@@ -127,6 +128,10 @@ int main(int argc, char *argv[])
 				usage(); exit(1);
 				break;  /* NOTREACHED */
 		}
+	}
+
+	if (msgfile == NULL && ctfile == NULL) {
+		errx(1, "no message or ciphertext file given.");
 	}
 
 	// import key
@@ -161,8 +166,11 @@ int main(int argc, char *argv[])
 		fclose(nf);
 	}
 
+	// import message file if given
 	if (msgfile != NULL) {
-		// TODO check file exists
+		if (access(msgfile, R_OK) != 0) {
+			errx(1, "given message file does not exist.");
+		}
 
 		char *line = NULL;
 		size_t llen;
@@ -172,6 +180,7 @@ int main(int argc, char *argv[])
 		if (mf == NULL)
 			exit(EXIT_FAILURE);
 
+		// load each message/line into the msgs array
 		for (nmsgs = 0; (read = getline(&line, &llen, mf)) != -1; nmsgs++) {
 			msgs[nmsgs] = malloc(llen);
 
@@ -186,8 +195,36 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	// convert to hex for displaying
+	if (ctfile != NULL) {
+		if (access(ctfile, R_OK) != 0) {
+			errx(1, "given message file does not exist.");
+		}
+
+		char *line = NULL;
+		size_t llen;
+		ssize_t read;
+		
+		FILE *cf = fopen(ctfile, "r");
+		if (cf == NULL)
+			exit(EXIT_FAILURE);
+
+		// load each message/line into the msgs array
+		for (nmsgs = 0; (read = getline(&line, &llen, cf)) != -1; nmsgs++) {
+			msgs[nmsgs] = malloc(llen);
+
+			if (msgs[nmsgs] == NULL)
+				exit(EXIT_FAILURE);
+			// chop off newline
+			strtok(line, "\n");
+
+			// recalculate message length
+			msgls[nmsgs] = (unsigned long long)(strlen(line)*sizeof(unsigned char));
+			sprintf(msgs[nmsgs], "%s", line);
+		}
+	}
+
 	if (verbose) {
+		// convert to hex for displaying
 		sodium_bin2hex(key_hex,   sizeof(key_hex),   key,   sizeof(key));
 		sodium_bin2hex(nonce_hex, sizeof(nonce_hex), nonce, sizeof(nonce));
 		sodium_bin2hex(ad_hex,    sizeof(ad_hex),    ad,    adlen);
@@ -255,6 +292,7 @@ int encrypt_msgs(unsigned char **msgs, unsigned long long *msgls, unsigned long 
 		size_t mlenz;
 
 		// convert the hex string (message) to binary data
+		// ignores spaces
 		sodium_hex2bin(msg, sizeof(msg),
 		               msg_hex, msg_hex_len,
 		               " ", &mlenz,
